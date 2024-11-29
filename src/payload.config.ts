@@ -1,22 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
-import { payloadCloudPlugin } from '@payloadcms/payload-cloud'
-import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
-import { redirectsPlugin } from '@payloadcms/plugin-redirects'
-import { seoPlugin } from '@payloadcms/plugin-seo'
-import type { GenerateTitle } from '@payloadcms/plugin-seo/types'
-import { stripePlugin } from '@payloadcms/plugin-stripe'
-import {
-  BoldFeature,
-  ItalicFeature,
-  LinkFeature,
-  UnderlineFeature,
-  lexicalEditor
-} from '@payloadcms/richtext-lexical'
-import path from 'path'
-import { buildConfig } from 'payload'
-import sharp from 'sharp'
-import { fileURLToPath } from 'url'
+import { plugins } from './plugins'
 
 import { Categories } from '@/collections/Categories'
 import { Media } from '@/collections/Media'
@@ -30,10 +14,18 @@ import { productsProxy } from '@/endpoints/products'
 import { seed } from '@/endpoints/seed'
 import { Footer } from '@/globals/Footer'
 import { Header } from '@/globals/Header'
-import { paymentSucceeded } from '@/stripe/webhooks/paymentSucceeded'
-import { productUpdated } from '@/stripe/webhooks/productUpdated'
+import {
+  BoldFeature,
+  ItalicFeature,
+  LinkFeature,
+  UnderlineFeature,
+  lexicalEditor
+} from '@payloadcms/richtext-lexical'
+import path from 'path'
+import { buildConfig } from 'payload'
+import sharp from 'sharp'
+import { fileURLToPath } from 'url'
 
-// import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 // import { DocumentInfoContext } from '@payloadcms/ui'
 
 const filename = fileURLToPath(import.meta.url)
@@ -44,11 +36,9 @@ export type GenerateTitle2<T = unknown> = (args: {
   locale?: string
 }) => Promise<string> | string
 
-const generateTitle: GenerateTitle = <Page>({ doc }) => {
-  return `${doc?.title ?? ''} | My Store`
-}
-
 export default buildConfig({
+  globals: [Footer, Header],
+  collections: [Users, Products, Pages, Categories, Media, Orders],
   admin: {
     components: {
       // The `BeforeLogin` component renders a message that you see while logging into your admin panel.
@@ -60,10 +50,9 @@ export default buildConfig({
     },
     user: Users.slug
   },
-  collections: [Users, Products, Pages, Categories, Media, Orders],
   db: postgresAdapter({
     pool: {
-      connectionString: process.env.POSTGRES_URI
+      connectionString: process.env.DATABASE_URI
     }
     // prodMigrations: migrations,
   }),
@@ -124,50 +113,10 @@ export default buildConfig({
       path: '/seed'
     }
   ],
-  globals: [Footer, Header],
-  plugins: [
-    stripePlugin({
-      isTestKey: Boolean(process.env.PAYLOAD_PUBLIC_STRIPE_IS_TEST_KEY),
-      logs: true,
-      rest: false,
-      stripeSecretKey: process.env.STRIPE_SECRET_KEY || '',
-      stripeWebhooksEndpointSecret: process.env.STRIPE_WEBHOOKS_SIGNING_SECRET,
-      webhooks: {
-        'payment_intent.succeeded': paymentSucceeded,
-        'product.updated': productUpdated
-      }
-    }),
-    redirectsPlugin({
-      collections: ['pages', 'products']
-    }),
-    formBuilderPlugin({
-      fields: {
-        payment: false
-      },
-      formOverrides: {
-        fields: ({ defaultFields }) => {
-          return defaultFields.map((field) => {
-            if ('name' in field && field.name === 'confirmationMessage') {
-              return {
-                ...field,
-                editor: lexicalEditor()
-              }
-            }
-            return field
-          })
-        }
-      }
-    }),
-    seoPlugin({
-      collections: ['pages', 'products'],
-      generateTitle,
-      uploadsCollection: 'media'
-    }),
-    payloadCloudPlugin()
-  ],
+  plugins: [...plugins],
   secret: process.env.PAYLOAD_SECRET || 'demo-secret',
+  sharp,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts')
-  },
-  sharp
+  }
 })
