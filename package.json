@@ -43,6 +43,7 @@
     "@radix-ui/react-slot": "^1.0.2",
     "@stripe/react-stripe-js": "^2.7.1",
     "@stripe/stripe-js": "^4.0.0",
+    "babel-plugin-react-compiler": "19.0.0-beta-df7b47d-20241124",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cross-env": "^7.0.3",

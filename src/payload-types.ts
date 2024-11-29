@@ -12,7 +12,7 @@
  */
 export type CartItems =
   | {
-      product?: (string | null) | Product;
+      product?: (number | null) | Product;
       variant?: string | null;
       stripeProductID?: string | null;
       quantity?: number | null;
@@ -55,7 +55,7 @@ export interface Config {
     'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
-    defaultIDType: string;
+    defaultIDType: number;
   };
   globals: {
     footer: Footer;
@@ -97,10 +97,10 @@ export interface UserAuthOperations {
  * via the `definition` "users".
  */
 export interface User {
-  id: string;
+  id: number;
   name?: string | null;
   roles?: ('admin' | 'customer')[] | null;
-  orders?: (string | Order)[] | null;
+  orders?: (number | Order)[] | null;
   stripeCustomerID?: string | null;
   cart?: {
     items?: CartItems;
@@ -122,14 +122,14 @@ export interface User {
  * via the `definition` "orders".
  */
 export interface Order {
-  id: string;
-  orderedBy?: (string | null) | User;
+  id: number;
+  orderedBy?: (number | null) | User;
   stripePaymentIntentID?: string | null;
   total: number;
   currency: string;
   items?:
     | {
-        product: string | Product;
+        product: number | Product;
         variant?: string | null;
         quantity?: number | null;
         id?: string | null;
@@ -143,7 +143,7 @@ export interface Order {
  * via the `definition` "products".
  */
 export interface Product {
-  id: string;
+  id: number;
   title: string;
   publishedOn?: string | null;
   description?: {
@@ -161,7 +161,7 @@ export interface Product {
     };
     [k: string]: unknown;
   } | null;
-  gallery: (string | Media)[];
+  gallery: (number | Media)[];
   layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
   enableVariants?: boolean | null;
   variants?: {
@@ -193,7 +193,7 @@ export interface Product {
             | number
             | boolean
             | null;
-          images?: (string | Media)[] | null;
+          images?: (number | Media)[] | null;
           id?: string | null;
         }[]
       | null;
@@ -211,14 +211,14 @@ export interface Product {
   stock?: number | null;
   price?: number | null;
   currency?: string | null;
-  categories?: (string | Category)[] | null;
-  relatedProducts?: (string | Product)[] | null;
+  categories?: (number | Category)[] | null;
+  relatedProducts?: (number | Product)[] | null;
   slug?: string | null;
   skipSync?: boolean | null;
   meta?: {
     title?: string | null;
     description?: string | null;
-    image?: (string | null) | Media;
+    image?: (number | null) | Media;
   };
   updatedAt: string;
   createdAt: string;
@@ -229,7 +229,7 @@ export interface Product {
  * via the `definition` "media".
  */
 export interface Media {
-  id: string;
+  id: number;
   alt: string;
   caption?: {
     root: {
@@ -285,7 +285,7 @@ export interface CallToActionBlock {
           newTab?: boolean | null;
           reference?: {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           } | null;
           url?: string | null;
           label: string;
@@ -303,7 +303,7 @@ export interface CallToActionBlock {
  * via the `definition` "pages".
  */
 export interface Page {
-  id: string;
+  id: number;
   title: string;
   publishedOn?: string | null;
   hero: {
@@ -330,7 +330,7 @@ export interface Page {
             newTab?: boolean | null;
             reference?: {
               relationTo: 'pages';
-              value: string | Page;
+              value: number | Page;
             } | null;
             url?: string | null;
             label: string;
@@ -339,7 +339,7 @@ export interface Page {
           id?: string | null;
         }[]
       | null;
-    media?: (string | null) | Media;
+    media?: (number | null) | Media;
   };
   layout: (
     | CallToActionBlock
@@ -354,7 +354,7 @@ export interface Page {
   meta?: {
     title?: string | null;
     description?: string | null;
-    image?: (string | null) | Media;
+    image?: (number | null) | Media;
   };
   updatedAt: string;
   createdAt: string;
@@ -389,7 +389,7 @@ export interface ContentBlock {
           newTab?: boolean | null;
           reference?: {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           } | null;
           url?: string | null;
           label: string;
@@ -408,7 +408,7 @@ export interface ContentBlock {
  */
 export interface MediaBlock {
   position?: ('default' | 'fullscreen') | null;
-  media: string | Media;
+  media: number | Media;
   id?: string | null;
   blockName?: string | null;
   blockType: 'mediaBlock';
@@ -435,18 +435,18 @@ export interface ArchiveBlock {
   } | null;
   populateBy?: ('collection' | 'selection') | null;
   relationTo?: 'products' | null;
-  categories?: (string | Category)[] | null;
+  categories?: (number | Category)[] | null;
   limit?: number | null;
   selectedDocs?:
     | {
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       }[]
     | null;
   populatedDocs?:
     | {
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       }[]
     | null;
   populatedDocsTotal?: number | null;
@@ -459,7 +459,7 @@ export interface ArchiveBlock {
  * via the `definition` "categories".
  */
 export interface Category {
-  id: string;
+  id: number;
   title: string;
   slug: string;
   updatedAt: string;
@@ -472,18 +472,18 @@ export interface Category {
 export interface CarouselBlock {
   populateBy?: ('collection' | 'selection') | null;
   relationTo?: 'products' | null;
-  categories?: (string | Category)[] | null;
+  categories?: (number | Category)[] | null;
   limit?: number | null;
   selectedDocs?:
     | {
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       }[]
     | null;
   populatedDocs?:
     | {
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       }[]
     | null;
   populatedDocsTotal?: number | null;
@@ -496,7 +496,7 @@ export interface CarouselBlock {
  * via the `definition` "ThreeItemGridBlock".
  */
 export interface ThreeItemGridBlock {
-  products?: (string | Product)[] | null;
+  products?: (number | Product)[] | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'threeItemGrid';
@@ -531,18 +531,18 @@ export interface BannerBlock {
  * via the `definition` "redirects".
  */
 export interface Redirect {
-  id: string;
+  id: number;
   from: string;
   to?: {
     type?: ('reference' | 'custom') | null;
     reference?:
       | ({
           relationTo: 'pages';
-          value: string | Page;
+          value: number | Page;
         } | null)
       | ({
           relationTo: 'products';
-          value: string | Product;
+          value: number | Product;
         } | null);
     url?: string | null;
   };
@@ -554,7 +554,7 @@ export interface Redirect {
  * via the `definition` "forms".
  */
 export interface Form {
-  id: string;
+  id: number;
   title: string;
   fields?:
     | (
@@ -718,8 +718,8 @@ export interface Form {
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
-  id: string;
-  form: string | Form;
+  id: number;
+  form: number | Form;
   submissionData?:
     | {
         field: string;
@@ -735,48 +735,48 @@ export interface FormSubmission {
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: string;
+  id: number;
   document?:
     | ({
         relationTo: 'users';
-        value: string | User;
+        value: number | User;
       } | null)
     | ({
         relationTo: 'products';
-        value: string | Product;
+        value: number | Product;
       } | null)
     | ({
         relationTo: 'pages';
-        value: string | Page;
+        value: number | Page;
       } | null)
     | ({
         relationTo: 'categories';
-        value: string | Category;
+        value: number | Category;
       } | null)
     | ({
         relationTo: 'media';
-        value: string | Media;
+        value: number | Media;
       } | null)
     | ({
         relationTo: 'orders';
-        value: string | Order;
+        value: number | Order;
       } | null)
     | ({
         relationTo: 'redirects';
-        value: string | Redirect;
+        value: number | Redirect;
       } | null)
     | ({
         relationTo: 'forms';
-        value: string | Form;
+        value: number | Form;
       } | null)
     | ({
         relationTo: 'form-submissions';
-        value: string | FormSubmission;
+        value: number | FormSubmission;
       } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   updatedAt: string;
   createdAt: string;
@@ -786,10 +786,10 @@ export interface PayloadLockedDocument {
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  id: string;
+  id: number;
   user: {
     relationTo: 'users';
-    value: string | User;
+    value: number | User;
   };
   key?: string | null;
   value?:
@@ -809,7 +809,7 @@ export interface PayloadPreference {
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  id: string;
+  id: number;
   name?: string | null;
   batch?: number | null;
   updatedAt: string;
@@ -1356,7 +1356,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
  * via the `definition` "footer".
  */
 export interface Footer {
-  id: string;
+  id: number;
   navItems?:
     | {
         link: {
@@ -1364,7 +1364,7 @@ export interface Footer {
           newTab?: boolean | null;
           reference?: {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           } | null;
           url?: string | null;
           label: string;
@@ -1380,7 +1380,7 @@ export interface Footer {
  * via the `definition` "header".
  */
 export interface Header {
-  id: string;
+  id: number;
   navItems?:
     | {
         link: {
@@ -1388,7 +1388,7 @@ export interface Header {
           newTab?: boolean | null;
           reference?: {
             relationTo: 'pages';
-            value: string | Page;
+            value: number | Page;
           } | null;
           url?: string | null;
           label: string;
