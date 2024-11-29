@@ -1,5 +1,9 @@
 import type { TextField } from '@payloadcms/plugin-form-builder/types'
-import type { FieldErrorsImpl, FieldValues, UseFormRegister } from 'react-hook-form'
+import type {
+  FieldErrorsImpl,
+  FieldValues,
+  UseFormRegister
+} from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -26,7 +30,7 @@ export const Text: React.FC<
   label,
   register,
   required: requiredFromProps,
-  width,
+  width
 }) => {
   return (
     <Width width={width}>

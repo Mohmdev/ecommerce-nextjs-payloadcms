@@ -1,14 +1,16 @@
 import type { StaticImageData } from 'next/image'
 
+import { RichText } from '@/components/RichText'
 import { cn } from '@/utilities/cn'
 import React from 'react'
-import { RichText } from '@/components/RichText'
 
 import type { Page } from '@/payload-types'
 
 import { Media } from '@/components/Media'
+import type { Media as MediaType } from '@/payload-types'
 
 type Props = Extract<Page['layout'][0], { blockType: 'mediaBlock' }> & {
+  media?: MediaType | string
   breakout?: boolean
   captionClassName?: string
   className?: string
@@ -26,7 +28,7 @@ export const MediaBlock: React.FC<Props> = (props) => {
     imgClassName,
     media,
     position = 'default',
-    staticImage,
+    staticImage
   } = props
 
   let caption
@@ -37,9 +39,9 @@ export const MediaBlock: React.FC<Props> = (props) => {
       className={cn(
         '',
         {
-          container: position === 'default' && enableGutter,
+          container: position === 'default' && enableGutter
         },
-        className,
+        className
       )}
     >
       {position === 'fullscreen' && (
@@ -48,16 +50,20 @@ export const MediaBlock: React.FC<Props> = (props) => {
         </div>
       )}
       {position === 'default' && (
-        <Media imgClassName={cn('rounded', imgClassName)} resource={media} src={staticImage} />
+        <Media
+          imgClassName={cn('rounded', imgClassName)}
+          resource={media}
+          src={staticImage}
+        />
       )}
       {caption && (
         <div
           className={cn(
             'mt-6',
             {
-              container: position === 'fullscreen',
+              container: position === 'fullscreen'
             },
-            captionClassName,
+            captionClassName
           )}
         >
           <RichText content={caption} enableGutter={false} />

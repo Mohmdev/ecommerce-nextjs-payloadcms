@@ -10,20 +10,25 @@ export const MediaBlock: Block = {
       options: [
         {
           label: 'Default',
-          value: 'default',
+          value: 'default'
         },
         {
           label: 'Fullscreen',
-          value: 'fullscreen',
-        },
-      ],
+          value: 'fullscreen'
+        }
+      ]
     },
     {
       name: 'media',
       type: 'upload',
       relationTo: 'media',
       required: true,
-    },
+      filterOptions: {
+        mimeType: {
+          contains: ['image', 'video'] // Allow both image and video uploads
+        }
+      }
+    }
   ],
-  interfaceName: 'MediaBlock',
+  interfaceName: 'MediaBlock'
 }

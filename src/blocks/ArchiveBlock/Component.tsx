@@ -1,18 +1,30 @@
-import type { Product, ArchiveBlock as ArchiveBlockProps } from 'src/payload-types'
+import type {
+  ArchiveBlock as ArchiveBlockProps,
+  Category,
+  Product
+} from 'src/payload-types'
 
+import { RichText } from '@/components/RichText'
 import configPromise from '@payload-config'
 import { getPayloadHMR } from '@payloadcms/next/utilities'
 import React from 'react'
-import { RichText } from '@/components/RichText'
 
 import { CollectionArchive } from '../../components/CollectionArchive'
 
 export const ArchiveBlock: React.FC<
   ArchiveBlockProps & {
     id?: string
+    categories?: Category[]
   }
 > = async (props) => {
-  const { id, categories, introContent, limit = 3, populateBy, selectedDocs } = props
+  const {
+    id,
+    categories,
+    introContent,
+    limit = 3,
+    populateBy,
+    selectedDocs
+  } = props
 
   let products: Product[] = []
 
@@ -20,7 +32,7 @@ export const ArchiveBlock: React.FC<
     const payload = await getPayloadHMR({ config: configPromise })
 
     const flattenedCategories = categories?.length
-      ? categories.map((category) => {
+      ? categories.map((category: Category) => {
           if (typeof category === 'string') return category
           else return category.id
         })
@@ -34,11 +46,11 @@ export const ArchiveBlock: React.FC<
         ? {
             where: {
               categories: {
-                in: flattenedCategories,
-              },
-            },
+                in: flattenedCategories
+              }
+            }
           }
-        : {}),
+        : {})
     })
 
     products = fetchedProducts.docs
@@ -52,7 +64,11 @@ export const ArchiveBlock: React.FC<
     <div className="my-16" id={`block-${id}`}>
       {introContent && (
         <div className="container mb-16">
-          <RichText className="ml-0 max-w-[48rem]" content={introContent} enableGutter={false} />
+          <RichText
+            className="ml-0 max-w-[48rem]"
+            content={introContent}
+            enableGutter={false}
+          />
         </div>
       )}
       <CollectionArchive posts={products} />

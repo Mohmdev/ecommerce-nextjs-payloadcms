@@ -1,12 +1,13 @@
 'use client'
 import type { Form as FormType } from '@payloadcms/plugin-form-builder/types'
 
-import { useRouter } from 'next/navigation'
-import React, { useCallback, useState } from 'react'
-import { useForm } from 'react-hook-form'
 import { RichText } from '@/components/RichText'
 import { Button } from '@/components/ui/button'
+import { useRouter } from 'next/navigation'
+import React, { useCallback, useState } from 'react'
+import { FormProvider, useForm } from 'react-hook-form'
 
+import { getClientSideURL } from '@/utilities/getURL'
 import { buildInitialFormState } from './buildInitialFormState'
 import { fields } from './fields'
 
@@ -31,32 +32,38 @@ export type FormBlockType = {
 }
 
 export const FormBlock: React.FC<
-  FormBlockType & {
+  {
     id?: string
-  }
+  } & FormBlockType
 > = (props) => {
   const {
     enableIntro,
     form: formFromProps,
-    form: { id: formID, confirmationMessage, confirmationType, redirect, submitButtonLabel } = {},
-    introContent,
+    form: {
+      id: formID,
+      confirmationMessage,
+      confirmationType,
+      redirect,
+      submitButtonLabel
+    } = {},
+    introContent
   } = props
 
   const formMethods = useForm({
-    defaultValues: buildInitialFormState(formFromProps.fields),
+    defaultValues: buildInitialFormState(formFromProps.fields)
   })
   const {
     control,
     formState: { errors },
-    getValues,
     handleSubmit,
-    register,
-    setValue,
+    register
   } = formMethods
 
   const [isLoading, setIsLoading] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState<boolean>()
-  const [error, setError] = useState<{ message: string; status?: string } | undefined>()
+  const [error, setError] = useState<
+    { message: string; status?: string } | undefined
+  >()
   const router = useRouter()
 
   const onSubmit = useCallback(
@@ -67,7 +74,7 @@ export const FormBlock: React.FC<
 
         const dataToSend = Object.entries(data).map(([name, value]) => ({
           field: name,
-          value,
+          value
         }))
 
         // delay loading indicator by 1s
@@ -76,16 +83,19 @@ export const FormBlock: React.FC<
         }, 1000)
 
         try {
-          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/form-submissions`, {
-            body: JSON.stringify({
-              form: formID,
-              submissionData: dataToSend,
-            }),
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-          })
+          const req = await fetch(
+            `${getClientSideURL()}/api/form-submissions`,
+            {
+              body: JSON.stringify({
+                form: formID,
+                submissionData: dataToSend
+              }),
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              method: 'POST'
+            }
+          )
 
           const res = await req.json()
 
@@ -96,7 +106,7 @@ export const FormBlock: React.FC<
 
             setError({
               message: res.errors?.[0]?.message || 'Internal Server Error',
-              status: res.status,
+              status: res.status
             })
 
             return
@@ -116,56 +126,66 @@ export const FormBlock: React.FC<
           console.warn(err)
           setIsLoading(false)
           setError({
-            message: 'Something went wrong.',
+            message: 'Something went wrong.'
           })
         }
       }
 
       void submitForm()
     },
-    [router, formID, redirect, confirmationType],
+    [router, formID, redirect, confirmationType]
   )
 
   return (
-    <div className="container max-w-[48rem] pb-20">
+    <div className="container lg:max-w-[48rem]">
       {enableIntro && introContent && !hasSubmitted && (
-        <RichText className="mb-8" content={introContent} enableGutter={false} />
+        <RichText
+          className="mb-8 lg:mb-12"
+          content={introContent}
+          enableGutter={false}
+        />
       )}
-      {!isLoading && hasSubmitted && confirmationType === 'message' && (
-        <RichText className="classes.confirmationMessage" content={confirmationMessage} />
-      )}
-      {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
-      {error && <div>{`${error.status || '500'}: ${error.message || ''}`}</div>}
-      {!hasSubmitted && (
-        <form id={formID} onSubmit={handleSubmit(onSubmit)}>
-          <div className="mb-4 last:mb-0">
-            {formFromProps &&
-              formFromProps.fields &&
-              formFromProps.fields?.map((field, index) => {
-                const Field: React.FC<any> = fields?.[field.blockType]
-                if (Field) {
-                  return (
-                    <div className="mb-6 last:mb-0" key={index}>
-                      <Field
-                        form={formFromProps}
-                        {...field}
-                        {...formMethods}
-                        control={control}
-                        errors={errors}
-                        register={register}
-                      />
-                    </div>
-                  )
-                }
-                return null
-              })}
-          </div>
+      <div className="rounded-[0.8rem] border border-border p-4 lg:p-6">
+        <FormProvider {...formMethods}>
+          {!isLoading && hasSubmitted && confirmationType === 'message' && (
+            <RichText content={confirmationMessage} />
+          )}
+          {isLoading && !hasSubmitted && <p>Loading, please wait...</p>}
+          {error && (
+            <div>{`${error.status || '500'}: ${error.message || ''}`}</div>
+          )}
+          {!hasSubmitted && (
+            <form id={formID} onSubmit={handleSubmit(onSubmit)}>
+              <div className="mb-4 last:mb-0">
+                {formFromProps &&
+                  formFromProps.fields &&
+                  formFromProps.fields?.map((field, index) => {
+                    const Field: React.FC<any> = fields?.[field.blockType]
+                    if (Field) {
+                      return (
+                        <div className="mb-6 last:mb-0" key={index}>
+                          <Field
+                            form={formFromProps}
+                            {...field}
+                            {...formMethods}
+                            control={control}
+                            errors={errors}
+                            register={register}
+                          />
+                        </div>
+                      )
+                    }
+                    return null
+                  })}
+              </div>
 
-          <Button form={formID} type="submit" variant="default">
-            {submitButtonLabel}
-          </Button>
-        </form>
-      )}
+              <Button form={formID} type="submit" variant="default">
+                {submitButtonLabel}
+              </Button>
+            </form>
+          )}
+        </FormProvider>
+      </div>
     </div>
   )
 }
