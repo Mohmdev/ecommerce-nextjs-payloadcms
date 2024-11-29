@@ -1,7 +1,5 @@
 'use client'
 
-import type { Order } from '@/payload-types'
-
 import { Message } from '@/components/Message'
 import { Button } from '@/components/ui/button'
 import { useCart } from '@/providers/Cart'
@@ -23,18 +21,25 @@ export const CheckoutForm: React.FC = () => {
   }
 
   const fetchRetry = useCallback(
-    async (url: string, fetchOptions = {}, delay = 750, tries = 3): Promise<any> => {
+    async (
+      url: string,
+      fetchOptions = {},
+      delay = 750,
+      tries = 3
+    ): Promise<any> => {
       function onError(err) {
         const triesLeft = tries - 1
         if (!triesLeft) {
           throw err
         }
-        return wait(delay).then(() => fetchRetry(url, fetchOptions, delay, triesLeft))
+        return wait(delay).then(() =>
+          fetchRetry(url, fetchOptions, delay, triesLeft)
+        )
       }
 
       return fetch(url, fetchOptions).catch(onError)
     },
-    [],
+    []
   )
 
   const handleSubmit = useCallback(
@@ -44,13 +49,14 @@ export const CheckoutForm: React.FC = () => {
 
       if (stripe && elements) {
         try {
-          const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
-            confirmParams: {
-              return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/order-confirmation`,
-            },
-            elements,
-            redirect: 'if_required',
-          })
+          const { error: stripeError, paymentIntent } =
+            await stripe.confirmPayment({
+              confirmParams: {
+                return_url: `${process.env.NEXT_PUBLIC_SERVER_URL}/order-confirmation`
+              },
+              elements,
+              redirect: 'if_required'
+            })
 
           if (stripeError?.message) {
             setError(stripeError.message)
@@ -67,14 +73,17 @@ export const CheckoutForm: React.FC = () => {
 
               query.append('limit', '1')
               query.append('depth', '0')
-              query.append('where', `[stripePaymentIntentID][equals]=${paymentIntent.id}`)
+              query.append(
+                'where',
+                `[stripePaymentIntentID][equals]=${paymentIntent.id}`
+              )
 
               const url = `${process.env.NEXT_PUBLIC_SERVER_URL}/api/orders?${query.toString()}`
 
               setTimeout(() => {
                 fetch(url, {
                   credentials: 'include',
-                  method: 'GET',
+                  method: 'GET'
                 })
                   .then((res) => res.json())
                   .then((data) => {
@@ -92,17 +101,20 @@ export const CheckoutForm: React.FC = () => {
               // don't throw an error if the order was not created successfully
               // this is because payment _did_ in fact go through, and we don't want the user to pay twice
               console.error(err.message) // eslint-disable-line no-console
-              router.push(`/order-confirmation?error=${encodeURIComponent(err.message)}`)
+              router.push(
+                `/order-confirmation?error=${encodeURIComponent(err.message)}`
+              )
             }
           }
         } catch (err) {
-          const msg = err instanceof Error ? err.message : 'Something went wrong.'
+          const msg =
+            err instanceof Error ? err.message : 'Something went wrong.'
           setError(`Error while submitting payment: ${msg}`)
           setIsLoading(false)
         }
       }
     },
-    [stripe, elements, clearCart, router],
+    [stripe, elements, clearCart, router]
   )
 
   return (

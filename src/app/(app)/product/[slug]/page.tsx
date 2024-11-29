@@ -1,64 +1,57 @@
-import type { Media, Product } from '@/payload-types'
-import type { Metadata } from 'next'
-
 import { RenderBlocks } from '@/blocks/RenderBlocks'
 import { GridTileImage } from '@/components/grid/tile'
 import { Gallery } from '@/components/product/Gallery'
 import { ProductDescription } from '@/components/product/ProductDescription'
-import { HIDDEN_PRODUCT_TAG } from '@/lib/constants'
 import configPromise from '@payload-config'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
-import { draftMode, headers } from 'next/headers'
+import { draftMode } from 'next/headers'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import React, { Suspense } from 'react'
+import { getPayload } from 'payload'
+import React, { Suspense, cache } from 'react'
+import ProductPageClient from './page.client'
 
-/* export async function generateMetadata({
-  params,
+import type { Media, Product } from '@/payload-types'
+
+const queryProductBySlug = cache(async ({ slug }: { slug: string }) => {
+  const { isEnabled: draft } = await draftMode()
+
+  const payload = await getPayload({ config: configPromise })
+
+  const result = await payload.find({
+    collection: 'products',
+    depth: 2,
+    draft,
+    limit: 1,
+    pagination: false,
+    overrideAccess: draft,
+    where: {
+      slug: {
+        equals: slug
+      }
+    }
+  })
+
+  return result.docs?.[0] || null
+})
+
+export default async function ProductPage({
+  params: paramsPromise
 }: {
-  params: { handle: string }
-}): Promise<Metadata> {
-  const product = await queryProductBySlug(params.handle)
-
-  if (!product) return notFound()
-
-  const { altText: alt, height, url, width } = product.featuredImage || {}
-  const indexable = !product.tags.includes(HIDDEN_PRODUCT_TAG)
-
-  return {
-    description: product.seo.description || product.description,
-    openGraph: url
-      ? {
-          images: [
-            {
-              alt,
-              height,
-              url,
-              width,
-            },
-          ],
-        }
-      : null,
-    robots: {
-      follow: indexable,
-      googleBot: {
-        follow: indexable,
-        index: indexable,
-      },
-      index: indexable,
-    },
-    title: product.seo.title || product.title,
-  }
-} */
-
-export default async function ProductPage({ params }: { params: { slug: string } }) {
-  const product = await queryProductBySlug({ slug: params.slug })
+  params: Promise<{
+    slug: string
+  }>
+}) {
+  const { slug } = await paramsPromise
+  const product = (await queryProductBySlug({ slug })) as Product
 
   if (!product) return notFound()
 
   const variants = product.enableVariants ? product.variants?.variants : []
 
-  const metaImage = typeof product.meta?.image !== 'string' ? product.meta?.image : undefined
+  const metaImage = (
+    typeof product.meta?.image !== 'string' ? product.meta?.image : undefined
+  ) as Media
+
   const hasStock = product.enableVariants
     ? variants?.some((variant) => variant?.stock > 0)
     : product.stock! > 0
@@ -68,41 +61,48 @@ export default async function ProductPage({ params }: { params: { slug: string }
     '@context': 'https://schema.org',
     '@type': 'Product',
     description: product.description,
-    image: metaImage?.url,
+    image: typeof metaImage === 'object' ? metaImage?.url : undefined,
     offers: {
       '@type': 'AggregateOffer',
-      availability: hasStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      availability: hasStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
       price: product.price,
-      priceCurrency: product.currency,
-    },
+      priceCurrency: product.currency
+    }
   }
 
-  const relatedProducts =
-    product.relatedProducts?.filter((relatedProduct) => typeof relatedProduct !== 'string') ?? []
+  const relatedProducts = (product.relatedProducts?.filter(
+    (relatedProduct) => typeof relatedProduct !== 'string'
+  ) ?? []) as Product[]
 
-  const gallery = product.gallery
-    ?.filter((image) => Boolean(image.image && typeof image.image !== 'string'))
-    .map((image) => {
-      if (image.image && typeof image.image !== 'string') return image.image
-    }) as Media[]
+  // const gallery = product.gallery
+  //   ?.filter((image) => Boolean(image.image && typeof image.image !== 'string'))
+  //   .map((image) => {
+  //     if (image.image && typeof image.image !== 'string') return image.image
+  //   }) as Media[]
+
+  const gallery = product.gallery?.filter((item): item is Media => {
+    return typeof item !== 'number' && item !== null
+  })
 
   if (variants?.length) {
     variants.forEach((variant) => {
       if (variant?.images?.length) {
-        variant.images.forEach((image) => {
-          if (image.image && typeof image.image !== 'string') {
-            gallery?.push(image.image)
-          }
+        const variantImages = variant.images.filter((item): item is Media => {
+          return typeof item !== 'number' && item !== null
         })
+        gallery?.push(...variantImages)
       }
     })
   }
 
   return (
     <React.Fragment>
+      <ProductPageClient />
       <script
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(productJsonLd),
+          __html: JSON.stringify(productJsonLd)
         }}
         type="application/ld+json"
       />
@@ -147,12 +147,15 @@ function RelatedProducts({ products }: { products: Product[] }) {
             className="aspect-square w-full flex-none min-[475px]:w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
             key={product.id}
           >
-            <Link className="relative h-full w-full" href={`/product/${product.slug}`}>
+            <Link
+              href={`/product/${product.slug}`}
+              className="relative h-full w-full"
+            >
               <GridTileImage
                 label={{
                   amount: product.price!,
                   currencyCode: product.currency!,
-                  title: product.title,
+                  title: product.title
                 }}
                 media={product.meta?.image as Media}
               />
@@ -164,27 +167,43 @@ function RelatedProducts({ products }: { products: Product[] }) {
   )
 }
 
-const queryProductBySlug = async ({ slug }: { slug: string }) => {
-  const { isEnabled: draft } = draftMode()
+// import type { Metadata } from 'next'
+// import { HIDDEN_PRODUCT_TAG } from '@/lib/constants'
 
-  const payload = await getPayloadHMR({ config: configPromise })
-  const authResult = draft ? await payload.auth({ headers: headers() }) : undefined
+/* export async function generateMetadata({
+  params,
+}: {
+  params: { handle: string }
+}): Promise<Metadata> {
+  const product = await queryProductBySlug(params.handle)
 
-  const user = authResult?.user
+  if (!product) return notFound()
 
-  const result = await payload.find({
-    collection: 'products',
-    depth: 2,
-    draft,
-    limit: 1,
-    overrideAccess: false,
-    user,
-    where: {
-      slug: {
-        equals: slug,
+  const { altText: alt, height, url, width } = product.featuredImage || {}
+  const indexable = !product.tags.includes(HIDDEN_PRODUCT_TAG)
+
+  return {
+    description: product.seo.description || product.description,
+    openGraph: url
+      ? {
+          images: [
+            {
+              alt,
+              height,
+              url,
+              width,
+            },
+          ],
+        }
+      : null,
+    robots: {
+      follow: indexable,
+      googleBot: {
+        follow: indexable,
+        index: indexable,
       },
+      index: indexable,
     },
-  })
-
-  return result.docs?.[0] || null
-}
+    title: product.seo.title || product.title,
+  }
+} */

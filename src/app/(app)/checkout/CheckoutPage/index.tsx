@@ -47,7 +47,7 @@ export const CheckoutPage: React.FC = () => {
           const body = !user
             ? {
                 cart,
-                email,
+                email
               }
             : undefined
 
@@ -58,13 +58,13 @@ export const CheckoutPage: React.FC = () => {
                 ? {
                     body: JSON.stringify(body),
                     headers: {
-                      'Content-Type': 'application/json',
-                    },
+                      'Content-Type': 'application/json'
+                    }
                   }
                 : {}),
               credentials: 'include',
-              method: 'POST',
-            },
+              method: 'POST'
+            }
           )
 
           const res = await paymentReq.json()
@@ -88,10 +88,14 @@ export const CheckoutPage: React.FC = () => {
   if (!stripe) return null
 
   return (
-    <div className="flex flex-col items-stretch justify-stretch md:flex-row gap-6 md:gap-12">
-      <div className="w-full flex-grow flex flex-col gap-8">
-        <div className="prose dark:prose-invert bg-black rounded-sm p-4 flex-grow w-full flex items-center">
-          <Button asChild className="no-underline text-inherit" variant="outline">
+    <div className="flex flex-col items-stretch justify-stretch gap-6 md:flex-row md:gap-12">
+      <div className="flex w-full flex-grow flex-col gap-8">
+        <div className="prose flex w-full flex-grow items-center rounded-sm bg-black p-4 dark:prose-invert">
+          <Button
+            asChild
+            className="text-inherit no-underline"
+            variant="outline"
+          >
             <Link href="/login">Log in</Link>
           </Button>
           <p className="mt-0">
@@ -100,7 +104,7 @@ export const CheckoutPage: React.FC = () => {
           </p>
         </div>
         {user ? (
-          <div className="bg-black rounded-sm p-4 w-full">
+          <div className="w-full rounded-sm bg-black p-4">
             <div>
               <p>{user.email}</p>{' '}
               <p>
@@ -109,10 +113,10 @@ export const CheckoutPage: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="bg-black rounded-sm p-4 w-full">
+          <div className="w-full rounded-sm bg-black p-4">
             <div>
               <p className="mb-4">Enter your email to checkout as a guest.</p>
-              <div className="max-w-sm mb-4">
+              <div className="mb-4 max-w-sm">
                 <Label htmlFor="email">Email Address</Label>
                 <Input
                   disabled={!emailEditable}
@@ -169,21 +173,27 @@ export const CheckoutPage: React.FC = () => {
                     variables: {
                       borderRadius: '0px',
                       colorBackground:
-                        theme === 'dark' ? cssVariables.colors.base850 : cssVariables.colors.base0,
+                        theme === 'dark'
+                          ? cssVariables.colors.base850
+                          : cssVariables.colors.base0,
                       colorDanger: cssVariables.colors.error500,
                       colorDangerText: cssVariables.colors.error500,
                       colorIcon:
-                        theme === 'dark' ? cssVariables.colors.base0 : cssVariables.colors.base1000,
+                        theme === 'dark'
+                          ? cssVariables.colors.base0
+                          : cssVariables.colors.base1000,
                       colorText:
-                        theme === 'dark' ? cssVariables.colors.base0 : cssVariables.colors.base1000,
+                        theme === 'dark'
+                          ? cssVariables.colors.base0
+                          : cssVariables.colors.base1000,
                       colorTextPlaceholder: cssVariables.colors.base500,
                       fontFamily: 'Inter, sans-serif',
                       fontSizeBase: '16px',
                       fontWeightBold: '600',
-                      fontWeightNormal: '500',
-                    },
+                      fontWeightNormal: '500'
+                    }
                   },
-                  clientSecret,
+                  clientSecret
                 }}
                 stripe={stripe}
               >
@@ -194,20 +204,22 @@ export const CheckoutPage: React.FC = () => {
         </Suspense>
       </div>
       {!cartIsEmpty && (
-        <div className="max-w-md w-full">
+        <div className="w-full max-w-md">
           {cart?.items?.map((item, index) => {
             if (typeof item.product === 'object' && item.product) {
               const {
                 product,
                 product: { id, meta, title },
                 quantity,
-                variant: variantId,
+                variant: variantId
               } = item
 
               let stripeProductID
 
               if (variantId) {
-                const variant = product.variants?.variants?.find((v) => v.id === variantId)
+                const variant = product.variants?.variants?.find(
+                  (v) => v.id === variantId
+                )
                 stripeProductID = variant?.stripeProductID
               } else {
                 stripeProductID = product.stripeProductID
@@ -223,15 +235,24 @@ export const CheckoutPage: React.FC = () => {
                 <Fragment key={index}>
                   <div className="">
                     <div className="relative">
-                      {!metaImage && <span className="classes.placeholder">No image</span>}
-                      {metaImage && typeof metaImage !== 'string' && (
-                        <Media className="" fill imgClassName="" resource={metaImage} />
+                      {!metaImage && (
+                        <span className="classes.placeholder">No image</span>
+                      )}
+                      {metaImage && typeof metaImage === 'object' && (
+                        <Media
+                          className=""
+                          fill
+                          imgClassName=""
+                          resource={metaImage}
+                        />
                       )}
                     </div>
                     <div className="">
                       {!stripeProductID && (
                         <p className="classes.warning">
-                          {'This product is not yet connected to Stripe. To link this product, '}
+                          {
+                            'This product is not yet connected to Stripe. To link this product, '
+                          }
                           <Link
                             href={`${process.env.NEXT_PUBLIC_SERVER_URL}/admin/collections/products/${id}`}
                           >
@@ -242,7 +263,9 @@ export const CheckoutPage: React.FC = () => {
                       )}
                       <h6 className="">{title}</h6>
 
-                      {product.price && <Price amount={product.price} currencyCode="usd" />}
+                      {product.price && (
+                        <Price amount={product.price} currencyCode="usd" />
+                      )}
                     </div>
                   </div>
                   {!isLast && <hr />}
@@ -252,7 +275,8 @@ export const CheckoutPage: React.FC = () => {
             return null
           })}
           <div className="flex gap-2">
-            <span>Order total:</span> <Price amount={cartTotal.amount} currencyCode="usd" />
+            <span>Order total:</span>{' '}
+            <Price amount={cartTotal.amount} currencyCode="usd" />
           </div>
         </div>
       )}

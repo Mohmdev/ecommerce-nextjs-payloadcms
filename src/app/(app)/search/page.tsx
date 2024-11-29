@@ -2,18 +2,18 @@ import { Grid } from '@/components/grid'
 import { ProductGridItems } from '@/components/layout/ProductGridItems'
 import configPromise from '@payload-config'
 import { getPayloadHMR } from '@payloadcms/next/utilities'
-import React from 'react'
 
 export const metadata = {
   description: 'Search for products in the store.',
-  title: 'Search',
+  title: 'Search'
 }
 
 export default async function SearchPage({
-  searchParams,
+  searchParams: searchParamsPromise
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined }
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const searchParams = await searchParamsPromise
   const { q: searchValue, sort } = searchParams as { [key: string]: string }
   const payload = await getPayloadHMR({ config: configPromise })
 
@@ -26,18 +26,18 @@ export default async function SearchPage({
             or: [
               {
                 title: {
-                  like: searchValue,
-                },
+                  like: searchValue
+                }
               },
               {
                 description: {
-                  like: searchValue,
-                },
-              },
-            ],
-          },
+                  like: searchValue
+                }
+              }
+            ]
+          }
         }
-      : {}),
+      : {})
   })
   const resultsText = products.docs.length > 1 ? 'results' : 'result'
 

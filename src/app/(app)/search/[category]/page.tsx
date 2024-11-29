@@ -6,17 +6,20 @@ import React from 'react'
 
 export const metadata = {
   description: 'Search for products in the store.',
-  title: 'Search',
+  title: 'Search'
 }
 
 export default async function SearchCategoryPage({
-  params,
-  searchParams,
+  params: paramsPromise,
+  searchParams: searchParamsPromise
 }: {
-  params: { category: string }
-  searchParams?: { [key: string]: string | string[] | undefined }
+  params: Promise<{ category: string }>
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
+  const searchParams = await searchParamsPromise
   const { q: searchValue, sort } = searchParams as { [key: string]: string }
+
+  const params = await paramsPromise
   const { category } = params
   const payload = await getPayloadHMR({ config: configPromise })
 
@@ -25,8 +28,8 @@ export default async function SearchCategoryPage({
     await payload.find({
       collection: 'categories',
       where: {
-        slug: { equals: category },
-      },
+        slug: { equals: category }
+      }
     })
   ).docs?.[0]
 
@@ -40,18 +43,18 @@ export default async function SearchCategoryPage({
           or: [
             {
               title: {
-                like: searchValue,
-              },
+                like: searchValue
+              }
             },
             {
               description: {
-                like: searchValue,
-              },
-            },
-          ],
-        },
-      ],
-    },
+                like: searchValue
+              }
+            }
+          ]
+        }
+      ]
+    }
   })
   const resultsText = products.docs.length > 1 ? 'results' : 'result'
 
