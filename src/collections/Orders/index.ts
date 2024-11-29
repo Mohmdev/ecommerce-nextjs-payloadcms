@@ -6,7 +6,7 @@ import { adminsOrOrderedByOrPaymentId } from '@/access/adminsOrOrderedByOrPaymen
 import { clearUserCart } from './hooks/clearUserCart'
 import { populateOrderedBy } from './hooks/populateOrderedBy'
 import { updateUserOrders } from './hooks/updateUserOrders'
-import { LinkToPaymentIntent } from './ui/LinkToPaymentIntent'
+// import { LinkToPaymentIntent } from './ui/LinkToPaymentIntent'
 
 export const Orders: CollectionConfig = {
   slug: 'orders',
@@ -14,21 +14,21 @@ export const Orders: CollectionConfig = {
     create: adminsOrLoggedIn,
     delete: admins,
     read: adminsOrOrderedByOrPaymentId,
-    update: admins,
+    update: admins
   },
   admin: {
     defaultColumns: ['createdAt', 'orderedBy'],
-    preview: (doc) => `${process.env.PAYLOAD_PUBLIC_SERVER_URL}/orders/${doc.id}`,
-    useAsTitle: 'createdAt',
+    preview: (doc) => `${process.env.NEXT_PUBLIC_SERVER_URL}/orders/${doc.id}`,
+    useAsTitle: 'createdAt'
   },
   fields: [
     {
       name: 'orderedBy',
       type: 'relationship',
       hooks: {
-        beforeChange: [populateOrderedBy],
+        beforeChange: [populateOrderedBy]
       },
-      relationTo: 'users',
+      relationTo: 'users'
     },
     {
       name: 'stripePaymentIntentID',
@@ -37,9 +37,9 @@ export const Orders: CollectionConfig = {
         /* components: {
           Field: LinkToPaymentIntent,
         }, */
-        position: 'sidebar',
+        position: 'sidebar'
       },
-      label: 'Stripe Payment Intent ID',
+      label: 'Stripe Payment Intent ID'
     },
     {
       type: 'row',
@@ -48,14 +48,14 @@ export const Orders: CollectionConfig = {
           name: 'total',
           type: 'number',
           min: 0,
-          required: true,
+          required: true
         },
         {
           name: 'currency',
           type: 'text',
-          required: true,
-        },
-      ],
+          required: true
+        }
+      ]
     },
     {
       name: 'items',
@@ -68,23 +68,23 @@ export const Orders: CollectionConfig = {
               name: 'product',
               type: 'relationship',
               relationTo: 'products',
-              required: true,
+              required: true
             },
             {
               name: 'variant',
-              type: 'text',
-            },
-          ],
+              type: 'text'
+            }
+          ]
         },
         {
           name: 'quantity',
           type: 'number',
-          min: 0,
-        },
-      ],
-    },
+          min: 0
+        }
+      ]
+    }
   ],
   hooks: {
-    afterChange: [updateUserOrders, clearUserCart],
-  },
+    afterChange: [updateUserOrders, clearUserCart]
+  }
 }

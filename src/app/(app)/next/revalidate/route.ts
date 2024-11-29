@@ -12,7 +12,7 @@ export async function GET(request: NextRequest): Promise<Response> {
   const type: RevalidationType =
     (request.nextUrl.searchParams.get('type') as RevalidationType) ?? 'path'
 
-  if (!secret || secret !== process.env.NEXT_PRIVATE_REVALIDATION_KEY) {
+  if (!secret || secret !== process.env.PAYLOAD_SECRET) {
     // Do not indicate that the revalidation key is incorrect in the response
     // This will protect this API route from being exploited
     return new Response('Invalid request', { status: 400 })

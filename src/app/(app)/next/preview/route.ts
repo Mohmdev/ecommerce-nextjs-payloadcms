@@ -1,8 +1,8 @@
+import configPromise from '@payload-config'
+import { getPayloadHMR } from '@payloadcms/next/utilities'
 import jwt from 'jsonwebtoken'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
-import configPromise from '@payload-config'
 
 const payloadToken = 'payload-token'
 
@@ -13,7 +13,7 @@ export async function GET(
         value: string
       }
     }
-  },
+  }
 ): Promise<Response> {
   const payload = await getPayloadHMR({ config: configPromise })
   const token = req.cookies.get(payloadToken)?.value
@@ -38,10 +38,14 @@ export async function GET(
 
   // You can add additional checks here to see if the user is allowed to preview this page
   if (!user) {
-    draftMode().disable()
-    return new Response('You are not allowed to preview this page', { status: 403 })
+    const draft = await draftMode()
+    draft.disable()
+    return new Response('You are not allowed to preview this page', {
+      status: 403
+    })
   }
 
-  draftMode().enable()
+  await draftMode().then((draft) => draft.enable())
+
   redirect(path)
 }
