@@ -1,3 +1,16 @@
+**/payload-types.ts
+**/.git
+**/.hg
+**/.pnp.*
+**/.svn
+**/.yarn/**
+**/build
+**/dist/**
+**/node_modules
+**/temp
+**/docs/**
+**/migrations/**
+.tmp
 .vercel
 .next
 pnpm-lock.yaml

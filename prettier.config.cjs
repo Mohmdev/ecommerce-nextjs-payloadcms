@@ -2,8 +2,9 @@
 module.exports = {
   singleQuote: true,
   arrowParens: 'always',
-  trailingComma: 'none',
-  printWidth: 100,
+  printWidth: 80,
   tabWidth: 2,
-  plugins: ['prettier-plugin-tailwindcss'],
+  semi: false,
+  trailingComma: 'none',
+  plugins: ['prettier-plugin-tailwindcss']
 }
