@@ -8,7 +8,7 @@ import Stripe from 'stripe'
 import type { CartItems } from '@/payload-types'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2022-08-01',
+  apiVersion: '2022-08-01'
 })
 
 // this endpoint creates an `Invoice` with the items in the cart
@@ -24,7 +24,10 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
   const emailFromRequest = req.data?.email
 
   if (!user && !emailFromRequest) {
-    return Response.json('A user or an email is required for this transaction.', { status: 401 })
+    return Response.json(
+      'A user or an email is required for this transaction.',
+      { status: 401 }
+    )
   }
 
   let fullUser: User | undefined
@@ -32,16 +35,17 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
   if (user) {
     fullUser = await payload.findByID({
       id: user?.id,
-      collection: 'users',
+      collection: 'users'
     })
   }
 
-  const cart = fullUser?.cart?.items || (cartFromRequest as { items: CartItems }).items
+  const cart =
+    fullUser?.cart?.items || (cartFromRequest as { items: CartItems }).items
 
   if (!cart || cart.length === 0) {
     return Response.json(
       { error: 'Please provide a cart either directly or from the user.' },
-      { status: 401 },
+      { status: 401 }
     )
   }
 
@@ -56,7 +60,7 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
 
         const customer = (
           await stripe.customers.list({
-            email: fullUser.email,
+            email: fullUser.email
           })
         ).data?.[0]
 
@@ -65,7 +69,7 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
           // lookup user in Stripe and create one if not found
           const customer = await stripe.customers.create({
             name: fullUser?.name || fullUser.email,
-            email: fullUser.email,
+            email: fullUser.email
           })
 
           stripeCustomerID = customer.id
@@ -78,8 +82,8 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
             id: user.id,
             collection: 'users',
             data: {
-              stripeCustomerID,
-            },
+              stripeCustomerID
+            }
           })
       }
       // Otherwise use the email from the request to lookup the user in Stripe
@@ -87,14 +91,14 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
       // lookup user in Stripe and create one if not found
       const customer = (
         await stripe.customers.list({
-          email: emailFromRequest as string,
+          email: emailFromRequest as string
         })
       ).data?.[0]
 
       // Create a new customer if one is not found
       if (!customer) {
         const customer = await stripe.customers.create({
-          email: emailFromRequest as string,
+          email: emailFromRequest as string
         })
 
         stripeCustomer = customer
@@ -126,30 +130,37 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
 
         let price = 0
 
+        const productObj =
+          product && typeof product !== 'number' ? product : undefined
+
         if (isVariant) {
-          const variant = product?.variants?.variants?.find((item) => item.id === variantFromItem)
+          const variant = productObj?.variants?.variants?.find(
+            (item) => item.id === variantFromItem
+          )
 
           if (variant) {
             price = (variant.info as InfoType).price.amount
           }
         } else {
-          price = (product?.info as InfoType).price.amount
+          price = (productObj?.info as InfoType).price.amount
         }
 
         metadata.push({
-          product: product?.id,
+          product: productObj?.id,
           quantity: quantity,
-          variant: variantFromItem,
+          variant: variantFromItem
         })
 
         total += price * quantity
 
         return null
-      }),
+      })
     )
 
     if (total === 0) {
-      throw new Error('There is nothing to pay for, add some items to your cart and try again.')
+      throw new Error(
+        'There is nothing to pay for, add some items to your cart and try again.'
+      )
     }
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -157,12 +168,15 @@ export const createPaymentIntent: PayloadHandler = async (req) => {
       currency: 'usd',
       customer: stripeCustomerID,
       metadata: {
-        cart: JSON.stringify(metadata),
+        cart: JSON.stringify(metadata)
       },
-      payment_method_types: ['card'],
+      payment_method_types: ['card']
     })
 
-    return Response.json({ client_secret: paymentIntent.client_secret }, { status: 200 })
+    return Response.json(
+      { client_secret: paymentIntent.client_secret },
+      { status: 200 }
+    )
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
     payload.logger.error(message)

@@ -16,6 +16,5 @@ const generateURL: GenerateURL = ({ doc }) => {
 export const seoPluginConfig = seoPlugin({
   generateTitle,
   generateURL,
-  collections: ['pages', 'products'],
   uploadsCollection: 'media'
 })

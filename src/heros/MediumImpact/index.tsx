@@ -6,11 +6,17 @@ import { CMSLink } from '@/components/Link'
 import { Media } from '@/components/Media'
 import { RichText } from '@/components/RichText'
 
-export const MediumImpactHero: React.FC<Page['hero']> = ({ links, media, richText }) => {
+export const MediumImpactHero: React.FC<Page['hero']> = ({
+  links,
+  media,
+  richText
+}) => {
   return (
     <div className="">
       <div className="container mb-8">
-        <RichText className="mb-6" content={richText} enableGutter={false} />
+        {richText && (
+          <RichText className="mb-6" content={richText} enableGutter={false} />
+        )}
         {Array.isArray(links) && links.length > 0 && (
           <ul className="flex gap-4">
             {links.map(({ link }, i) => {

@@ -17,10 +17,13 @@ export const productUpdated: StripeWebhookHandler<{
     id: stripeProductID,
     name: stripeProductName,
     // description: stripeDescription,
-    default_price: defaultPrice,
+    default_price: defaultPrice
   } = event.data.object
 
-  if (logs) payload.logger.info(`Syncing Stripe product with ID: ${stripeProductID} to Payload...`)
+  if (logs)
+    payload.logger.info(
+      `Syncing Stripe product with ID: ${stripeProductID} to Payload...`
+    )
 
   let payloadProductID: string | null = null,
     stripePriceID: string | null = null
@@ -38,32 +41,38 @@ export const productUpdated: StripeWebhookHandler<{
         or: [
           {
             stripeProductID: {
-              equals: stripeProductID,
-            },
+              equals: stripeProductID
+            }
           },
           {
             'variants.variants.stripeProductID': {
-              equals: stripeProductID,
-            },
-          },
-        ],
-      },
+              equals: stripeProductID
+            }
+          }
+        ]
+      }
     })
 
     product = productQuery.docs?.[0]
-    isVariant = Boolean(product.enableVariants && product.variants?.variants?.length)
-    stripePriceID = typeof defaultPrice === 'string' ? defaultPrice : defaultPrice?.id || null
+    isVariant = Boolean(
+      product.enableVariants && product.variants?.variants?.length
+    )
+    stripePriceID =
+      typeof defaultPrice === 'string' ? defaultPrice : defaultPrice?.id || null
 
-    payloadProductID = product.id
+    payloadProductID = product.id.toString()
 
     if (payloadProductID) {
       if (logs)
         payload.logger.info(
-          `- Found existing product with Stripe ID: ${stripeProductID}, syncing now...`,
+          `- Found existing product with Stripe ID: ${stripeProductID}, syncing now...`
         )
     }
     if (!stripePriceID) {
-      if (logs) payload.logger.info(`- This product has no default price. Skipping sync for now...`)
+      if (logs)
+        payload.logger.info(
+          `- This product has no default price. Skipping sync for now...`
+        )
     }
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown error'
@@ -73,7 +82,10 @@ export const productUpdated: StripeWebhookHandler<{
   let price: Stripe.Price | null = null
 
   try {
-    if (logs) payload.logger.info(`- Looking up all prices associated with this product...`)
+    if (logs)
+      payload.logger.info(
+        `- Looking up all prices associated with this product...`
+      )
 
     // Get the full price data as webhooks only return a reference to the default price
     if (stripePriceID) price = await stripe.prices.retrieve(stripePriceID)
@@ -83,9 +95,14 @@ export const productUpdated: StripeWebhookHandler<{
 
   try {
     if (logs) payload.logger.info(`- Updating document...`)
-    if (isVariant && product?.variants?.variants && price && price.unit_amount) {
+    if (
+      isVariant &&
+      product?.variants?.variants &&
+      price &&
+      price.unit_amount
+    ) {
       const variantIndex = product.variants.variants.findIndex(
-        (variant) => variant.stripeProductID === stripeProductID,
+        (variant) => variant.stripeProductID === stripeProductID
       )
 
       if (variantIndex !== -1) {
@@ -95,16 +112,16 @@ export const productUpdated: StripeWebhookHandler<{
           ...(typeof variant?.info === 'object' ? variant?.info : {}),
           price: {
             amount: price.unit_amount,
-            currency: price.currency,
+            currency: price.currency
           },
-          productName: stripeProductName,
+          productName: stripeProductName
         }
 
         const updatedVariants = product.variants?.variants.map((v, i) => {
           if (i === variantIndex) {
             return {
               ...v,
-              info: updatedInfo,
+              info: updatedInfo
             }
           }
 
@@ -118,10 +135,10 @@ export const productUpdated: StripeWebhookHandler<{
             data: {
               skipSync: true,
               variants: {
-                variants: updatedVariants,
-              },
+                variants: updatedVariants
+              }
             },
-            req,
+            req
           })
         }
       }
@@ -131,9 +148,9 @@ export const productUpdated: StripeWebhookHandler<{
           ...(typeof product?.info === 'object' ? product?.info : {}),
           price: {
             amount: price.unit_amount,
-            currency: price.currency,
+            currency: price.currency
           },
-          productName: stripeProductName,
+          productName: stripeProductName
         }
 
         await payload.update({
@@ -141,9 +158,9 @@ export const productUpdated: StripeWebhookHandler<{
           collection: 'products',
           data: {
             info: updatedInfo,
-            skipSync: true,
+            skipSync: true
           },
-          req,
+          req
         })
       }
     }

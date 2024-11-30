@@ -3,9 +3,10 @@
 import { cn } from '@/utilities/cn'
 import React, { useEffect, useRef } from 'react'
 
+import { getClientSideURL } from '@/utilities/getURL'
 import type { Props as MediaProps } from '../types'
 
-export const Video: React.FC<MediaProps> = (props) => {
+export const VideoMedia: React.FC<MediaProps> = (props) => {
   const { onClick, resource, videoClassName } = props
 
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -21,7 +22,11 @@ export const Video: React.FC<MediaProps> = (props) => {
     }
   }, [])
 
-  if (resource && typeof resource !== 'string') {
+  if (
+    resource &&
+    typeof resource !== 'string' &&
+    typeof resource !== 'number'
+  ) {
     const { filename } = resource
 
     return (
@@ -35,7 +40,7 @@ export const Video: React.FC<MediaProps> = (props) => {
         playsInline
         ref={videoRef}
       >
-        <source src={`${process.env.NEXT_PUBLIC_SERVER_URL}/media/${filename}`} />
+        <source src={`${getClientSideURL()}/media/${filename}`} />
       </video>
     )
   }
