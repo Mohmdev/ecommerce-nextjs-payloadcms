@@ -147,23 +147,12 @@ export interface Order {
 export interface Product {
   id: number;
   title: string;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: string;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  gallery: (number | Media)[];
-  layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
+  slug?: string | null;
+  slugLock?: boolean | null;
+  publishedAt?: string | null;
+  categories?: (number | Category)[] | null;
+  relatedProducts?: (number | Product)[] | null;
+  skipSync?: boolean | null;
   enableVariants?: boolean | null;
   variants?: {
     options?:
@@ -212,20 +201,73 @@ export interface Product {
   stock?: number | null;
   price?: number | null;
   currency?: string | null;
+  gallery: (number | Media)[];
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  layout?: (CallToActionBlock | ContentBlock | MediaBlock)[] | null;
   meta?: {
     title?: string | null;
-    description?: string | null;
     image?: (number | null) | Media;
+    description?: string | null;
   };
-  categories?: (number | Category)[] | null;
-  relatedProducts?: (number | Product)[] | null;
-  publishedAt?: string | null;
-  slug?: string | null;
-  slugLock?: boolean | null;
-  skipSync?: boolean | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  description?: {
+    root: {
+      type: string;
+      children: {
+        type: string;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  featuredImage?: (number | null) | Media;
+  meta?: {
+    title?: string | null;
+    image?: (number | null) | Media;
+    description?: string | null;
+  };
+  slug: string;
+  displayOrder?: number | null;
+  parent?: (number | null) | Category;
+  breadcrumbs?:
+    | {
+        doc?: (number | null) | Category;
+        url?: string | null;
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -356,8 +398,8 @@ export interface Page {
   )[];
   meta?: {
     title?: string | null;
-    description?: string | null;
     image?: (number | null) | Media;
+    description?: string | null;
   };
   publishedAt?: string | null;
   slug?: string | null;
@@ -459,26 +501,6 @@ export interface ArchiveBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'archive';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
- */
-export interface Category {
-  id: number;
-  title: string;
-  slug: string;
-  parent?: (number | null) | Category;
-  breadcrumbs?:
-    | {
-        doc?: (number | null) | Category;
-        url?: string | null;
-        label?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -928,8 +950,48 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface ProductsSelect<T extends boolean = true> {
   title?: T;
-  description?: T;
+  slug?: T;
+  slugLock?: T;
+  publishedAt?: T;
+  categories?: T;
+  relatedProducts?: T;
+  skipSync?: T;
+  enableVariants?: T;
+  variants?:
+    | T
+    | {
+        options?:
+          | T
+          | {
+              label?: T;
+              slug?: T;
+              values?:
+                | T
+                | {
+                    label?: T;
+                    slug?: T;
+                    id?: T;
+                  };
+              id?: T;
+            };
+        variants?:
+          | T
+          | {
+              options?: T;
+              stripeProductID?: T;
+              stock?: T;
+              info?: T;
+              images?: T;
+              id?: T;
+            };
+      };
+  stripeProductID?: T;
+  info?: T;
+  stock?: T;
+  price?: T;
+  currency?: T;
   gallery?: T;
+  description?: T;
   layout?:
     | T
     | {
@@ -988,53 +1050,13 @@ export interface ProductsSelect<T extends boolean = true> {
               blockName?: T;
             };
       };
-  enableVariants?: T;
-  variants?:
-    | T
-    | {
-        options?:
-          | T
-          | {
-              label?: T;
-              slug?: T;
-              values?:
-                | T
-                | {
-                    label?: T;
-                    slug?: T;
-                    id?: T;
-                  };
-              id?: T;
-            };
-        variants?:
-          | T
-          | {
-              options?: T;
-              stripeProductID?: T;
-              stock?: T;
-              info?: T;
-              images?: T;
-              id?: T;
-            };
-      };
-  stripeProductID?: T;
-  info?: T;
-  stock?: T;
-  price?: T;
-  currency?: T;
   meta?:
     | T
     | {
         title?: T;
-        description?: T;
         image?: T;
+        description?: T;
       };
-  categories?: T;
-  relatedProducts?: T;
-  publishedAt?: T;
-  slug?: T;
-  slugLock?: T;
-  skipSync?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1180,8 +1202,8 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         title?: T;
-        description?: T;
         image?: T;
+        description?: T;
       };
   publishedAt?: T;
   slug?: T;
@@ -1196,7 +1218,17 @@ export interface PagesSelect<T extends boolean = true> {
  */
 export interface CategoriesSelect<T extends boolean = true> {
   title?: T;
+  description?: T;
+  featuredImage?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        image?: T;
+        description?: T;
+      };
   slug?: T;
+  displayOrder?: T;
   parent?: T;
   breadcrumbs?:
     | T

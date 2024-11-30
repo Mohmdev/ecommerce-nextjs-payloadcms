@@ -3,7 +3,7 @@ import type { CollectionConfig } from 'payload'
 import {
   FixedToolbarFeature,
   InlineToolbarFeature,
-  lexicalEditor,
+  lexicalEditor
 } from '@payloadcms/richtext-lexical'
 import path from 'path'
 import { fileURLToPath } from 'url'
@@ -14,25 +14,29 @@ const dirname = path.dirname(filename)
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
-    read: () => true,
+    read: () => true
   },
   fields: [
     {
       name: 'alt',
       type: 'text',
-      required: true,
+      required: true
     },
     {
       name: 'caption',
       type: 'richText',
       editor: lexicalEditor({
         features: ({ rootFeatures }) => {
-          return [...rootFeatures, FixedToolbarFeature(), InlineToolbarFeature()]
-        },
-      }),
-    },
+          return [
+            ...rootFeatures,
+            FixedToolbarFeature(),
+            InlineToolbarFeature()
+          ]
+        }
+      })
+    }
   ],
   upload: {
-    staticDir: path.resolve(dirname, '../../public/media'),
-  },
+    staticDir: path.resolve(dirname, '../../public/media')
+  }
 }
