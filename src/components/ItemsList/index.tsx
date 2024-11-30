@@ -1,5 +1,5 @@
 import type { InfoType } from '@/collections/Products/ui/types'
-import type { CartItems } from '@/payload-types'
+import type { CartItems, Media, Product } from '@/payload-types'
 
 import { Price } from '@/components/Price'
 import Image from 'next/image'
@@ -14,26 +14,42 @@ export const ItemsList: React.FC<Props> = ({ items }) => {
   return (
     <ul className="flex-grow overflow-auto py-4">
       {items?.map((item, i) => {
-        if (typeof item.product === 'string' || !item) return <React.Fragment key={item.id} />
+        if (typeof item.product === 'string' || !item)
+          return <React.Fragment key={item.id} />
 
-        const product = item.product
-        let image =
+        const product = item.product as Product
+
+        let image = (
           product?.meta?.image && typeof product?.meta?.image !== 'string'
             ? product.meta.image
             : undefined
+        ) as Media | undefined
 
         const isVariant = Boolean(item.variant)
-        const variant = item.product?.variants?.variants?.length
-          ? item.product.variants.variants.find((v) => v.id === item.variant)
+        const variant = product?.variants?.variants?.length
+          ? product.variants.variants.find((v) => v.id === item.variant)
           : undefined
 
-        const info = isVariant ? (variant?.info as InfoType) : (product?.info as InfoType)
+        const info = isVariant
+          ? (variant?.info as InfoType)
+          : (product?.info as InfoType)
+
+        const variantImages = (variant?.images as Media[]) || undefined
 
         if (isVariant) {
-          if (variant?.images?.[0]?.image && typeof variant?.images?.[0]?.image !== 'string') {
-            image = variant.images[0].image
+          if (variantImages?.[0] && typeof variantImages?.[0] !== 'string') {
+            image = variantImages[0]
           }
         }
+
+        // if (isVariant) {
+        //   if (
+        //     variant?.images?.[0]?.image &&
+        //     typeof variant?.images?.[0]?.image !== 'string'
+        //   ) {
+        //     image = variant.images[0].image
+        //   }
+        // }
 
         const url = `/product/${product?.slug}${isVariant ? `?variant=${item.variant}` : ''}`
 

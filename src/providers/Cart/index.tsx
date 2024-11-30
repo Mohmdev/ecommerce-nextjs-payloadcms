@@ -3,15 +3,15 @@
 import type { InfoType } from '@/collections/Products/ui/types'
 import type { Product, User } from '@/payload-types'
 
-import { parse } from 'path'
-import React, {
+// import { parse } from 'path'
+import {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useReducer,
   useRef,
-  useState,
+  useState
 } from 'react'
 
 import type { CartItem } from './reducer'
@@ -54,26 +54,35 @@ const flattenCart = (cart: User['cart']): User['cart'] => ({
         return null
       }
 
-      let stripeProductID
+      let stripeProductID: string | undefined
+
+      const cartProduct = item.product as Product
 
       if (typeof item.product !== 'string') {
+        // if cart item is a variant
         if (item.variant) {
-          const variant = item.product?.variants?.variants?.find((v) => v.id === item.variant)
-          if (variant?.stripeProductID) stripeProductID = variant.stripeProductID
+          const variant = cartProduct?.variants?.variants?.find(
+            (v) => v.id === item.variant
+          )
+          if (variant?.stripeProductID)
+            stripeProductID = variant.stripeProductID
         }
-        if (item.product.stripeProductID) stripeProductID = item.product.stripeProductID
+        // if cart item is a product
+        if (cartProduct.stripeProductID)
+          stripeProductID = cartProduct.stripeProductID ?? undefined
       }
 
       return {
         ...item,
         // flatten relationship to product
-        product: typeof item.product === 'string' ? item.product : item.product.id,
+        product:
+          typeof item.product === 'string' ? item.product : cartProduct.id,
         quantity: typeof item?.quantity === 'number' ? item?.quantity : 0,
         stripeProductID,
-        variant: item?.variant,
+        variant: item?.variant
       }
     })
-    .filter(Boolean) as CartItem[],
+    .filter(Boolean) as CartItem[]
 })
 
 // Step 1: Check local storage for a cart
@@ -95,7 +104,7 @@ export const CartProvider = (props) => {
     currency: string
   }>({
     amount: 0,
-    currency: 'usd',
+    currency: 'usd'
   })
 
   const [quantity, setQuantity] = useState<number>(0)
@@ -120,15 +129,15 @@ export const CartProvider = (props) => {
           dispatchCart({
             type: 'SET_CART',
             payload: {
-              items: parsedCart.items,
-            },
+              items: parsedCart.items
+            }
           })
         } else {
           dispatchCart({
             type: 'SET_CART',
             payload: {
-              items: [],
-            },
+              items: []
+            }
           })
         }
       }
@@ -146,14 +155,14 @@ export const CartProvider = (props) => {
       // merge the user's cart with the local state upon logging in
       dispatchCart({
         type: 'MERGE_CART',
-        payload: user?.cart,
+        payload: user?.cart
       })
     }
 
     if (authStatus === 'loggedOut') {
       // clear the cart from local state after logging out
       dispatchCart({
-        type: 'CLEAR_CART',
+        type: 'CLEAR_CART'
       })
     }
   }, [user, authStatus])
@@ -168,24 +177,29 @@ export const CartProvider = (props) => {
 
     if (user) {
       // prevent updating the cart when the cart hasn't changed
-      if (JSON.stringify(flattenCart(user.cart)) === JSON.stringify(flattenedCart)) {
+      if (
+        JSON.stringify(flattenCart(user.cart)) === JSON.stringify(flattenedCart)
+      ) {
         setHasInitialized(true)
         return
       }
 
       try {
         const syncCartToPayload = async () => {
-          const req = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`, {
-            // Make sure to include cookies with fetch
-            body: JSON.stringify({
-              cart: flattenedCart,
-            }),
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            method: 'PATCH',
-          })
+          const req = await fetch(
+            `${process.env.NEXT_PUBLIC_SERVER_URL}/api/users/${user.id}`,
+            {
+              // Make sure to include cookies with fetch
+              body: JSON.stringify({
+                cart: flattenedCart
+              }),
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              method: 'PATCH'
+            }
+          )
 
           if (req.ok) {
             localStorage.setItem('cart', '[]')
@@ -216,72 +230,77 @@ export const CartProvider = (props) => {
             } else {
               return typeof product === 'string'
                 ? product === incomingProduct.id
-                : product?.id === incomingProduct.id
+                : (product as Product)?.id === incomingProduct.id
             }
-          }), // eslint-disable-line function-paren-newline
+          }) // eslint-disable-line function-paren-newline
         )
       }
       return isInCart
     },
-    [cart],
+    [cart]
   )
 
   // this method can be used to add new items AND update existing ones
   const addItemToCart = useCallback((incomingItem: CartItem) => {
     dispatchCart({
       type: 'ADD_ITEM',
-      payload: incomingItem,
+      payload: incomingItem
     })
   }, [])
 
   const incrementQuantity = useCallback((id: string) => {
     dispatchCart({
       type: 'INCREMENT_QUANTITY',
-      payload: id,
+      payload: id
     })
   }, [])
 
   const decrementQuantity = useCallback((id: string) => {
     dispatchCart({
       type: 'DECREMENT_QUANTITY',
-      payload: id,
+      payload: id
     })
   }, [])
 
   const deleteItemFromCart = useCallback((id: string) => {
     dispatchCart({
       type: 'DELETE_ITEM',
-      payload: id,
+      payload: id
     })
   }, [])
 
   const clearCart = useCallback(() => {
     dispatchCart({
-      type: 'CLEAR_CART',
+      type: 'CLEAR_CART'
     })
   }, [])
 
   // calculate the new cart total whenever the cart changes
   useEffect(() => {
     if (!hasInitialized) return
-
     const newTotal =
       cart?.items?.reduce((acc, item) => {
+        const cartProduct = item.product as Product
+
         if (typeof item.product === 'string') return acc
         const itemInfo = item.variant
-          ? (item.product?.variants?.variants?.find((v) => v.id === item.variant)?.info as InfoType)
-          : (item.product?.info as InfoType)
+          ? (cartProduct?.variants?.variants?.find((v) => v.id === item.variant)
+              ?.info as InfoType)
+          : (cartProduct?.info as InfoType)
 
         const itemCost = itemInfo.price.amount * item.quantity!
         return acc + (itemCost || 0)
       }, 0) || 0
 
     const newQuantity =
-      cart?.items?.reduce((quantity, product) => product.quantity! + quantity, 0) || 0
+      cart?.items?.reduce(
+        (quantity, product) => product.quantity! + quantity,
+        0
+      ) || 0
 
     setTotal({
       amount: newTotal,
-      currency: 'USD',
+      currency: 'USD'
     })
 
     setQuantity(newQuantity)
@@ -300,7 +319,7 @@ export const CartProvider = (props) => {
         deleteItemFromCart,
         hasInitializedCart,
         incrementQuantity,
-        isProductInCart,
+        isProductInCart
       }}
     >
       {children && children}

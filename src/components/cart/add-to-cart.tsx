@@ -41,9 +41,13 @@ export function AddToCart({ product, variants }: Props) {
     const base = `/product/${product.slug}`
 
     if (selectedVariantId) {
-      const variant = variants?.find((variant) => variant.id === selectedVariantId)
+      const variant = variants?.find(
+        (variant) => variant.id === selectedVariantId
+      )
       const info = variant?.info as InfoType
-      const variantOptions = info.options.map((option) => `${option.key.slug}=${option.slug}`)
+      const variantOptions = info.options.map(
+        (option) => `${option.key.slug}=${option.slug}`
+      )
       return `${base}?variant=${selectedVariantId}&${variantOptions.join('&')}`
     } else {
       return base
@@ -52,7 +56,11 @@ export function AddToCart({ product, variants }: Props) {
 
   if (!true) {
     return (
-      <button aria-disabled className={clsx(buttonClasses, disabledClasses)} type="submit">
+      <button
+        aria-disabled
+        className={clsx(buttonClasses, disabledClasses)}
+        type="submit"
+      >
         Out Of Stock
       </button>
     )
@@ -62,17 +70,17 @@ export function AddToCart({ product, variants }: Props) {
     <button
       aria-label="Add to cart"
       className={clsx(buttonClasses, {
-        'hover:opacity-90': true,
+        'hover:opacity-90': true
       })}
       onClick={(e: React.FormEvent<HTMLButtonElement>) => {
         e.preventDefault()
 
         addItemToCart({
-          id: selectedVariantId ?? product.id,
+          id: (selectedVariantId ?? product.id).toString(),
           product,
           quantity: 1,
           url: productUrl,
-          variant: selectedVariantId ?? undefined,
+          variant: selectedVariantId ?? undefined
         })
       }}
       type="submit"
