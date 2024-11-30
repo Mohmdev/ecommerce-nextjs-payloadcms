@@ -1,7 +1,7 @@
 import { Grid } from '@/components/grid'
 import { ProductGridItems } from '@/components/layout/ProductGridItems'
 import configPromise from '@payload-config'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { getPayload } from 'payload'
 
 export const metadata = {
   description: 'Search for products in the store.',
@@ -15,7 +15,7 @@ export default async function SearchPage({
 }) {
   const searchParams = await searchParamsPromise
   const { q: searchValue, sort } = searchParams as { [key: string]: string }
-  const payload = await getPayloadHMR({ config: configPromise })
+  const payload = await getPayload({ config: configPromise })
 
   const products = await payload.find({
     collection: 'products',

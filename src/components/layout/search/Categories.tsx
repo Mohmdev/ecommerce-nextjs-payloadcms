@@ -1,22 +1,22 @@
 import configPromise from '@payload-config'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
 import clsx from 'clsx'
-import React, { Suspense } from 'react'
+import { getPayload } from 'payload'
+import { Suspense } from 'react'
 
 import { FilterList } from './filter'
 
 async function CategoryList() {
-  const payload = await getPayloadHMR({ config: configPromise })
+  const payload = await getPayload({ config: configPromise })
 
   const categories = (
     await payload.find({
       collection: 'categories',
-      sort: 'title',
+      sort: 'title'
     })
   ).docs?.map((category) => {
     return {
       path: `/search/${category.slug}`,
-      title: category.title,
+      title: category.title
     }
   })
 
